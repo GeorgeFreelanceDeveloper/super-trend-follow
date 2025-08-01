@@ -17,7 +17,7 @@ The Supertrend strategy can be used on different time horizons and in different 
 ![](resources/strategyEquity.png)
 
 > *Backtest Period: Jan 2015 – Feb 2025*  
-> *(Using Topp 10 stocks from S&P500 MOMENTUM index)*
+> *(Using Top 10 stocks from S&P500 MOMENTUM index)*
 
 | Metric                  | Value         |
 |-------------------------|---------------|
