@@ -21,14 +21,14 @@ The Supertrend strategy can be used on different time horizons and in different 
 
 | Metric                  | Value         |
 |-------------------------|---------------|
-| CAGR (Annual Return)    | 25.5%        |
-| Max Drawdown            | -28.1%        |
+| CAGR (Annual Return)    | 20.3%        |
+| Max Drawdown            | -28%        |
 | Sharpe Ratio            | 0.8          |
-| Win Rate (Monthly)      | 42%           |
-| Total Trades            | 468           |
+| Win Rate (Monthly)      | 43%           |
+| Total Trades            | 431           |
 
 **Backtests last 10 years**
-* [Super trend on top 10 stocks from S&P 500 MOMENTUM index](https://s3.amazonaws.com/reports.quantconnect.com/344866/21529583/dcbb8fad6365cce2edd863e74b0cf4cc.pdf)
+* [Super trend on top 10 stocks from S&P 500 MOMENTUM index](https://s3.amazonaws.com/reports.quantconnect.com/344866/21529583/f84c680cf2428b3b2c5e2db11dd74ef0.pdf)
 
 ## Author
 Olivier Seban is a prominent figure in the world of trading and investing, particularly known for his expertise in technical analysis and trend following strategies. Born in France, Seban has built a reputation as an educator and author, sharing his insights and knowledge with aspiring traders worldwide.
