@@ -3,86 +3,108 @@ from AlgorithmImports import *
 import datetime
 # endregion
 
-class SupertrendV1(QCAlgorithm):
+class SupertrendV2(QCAlgorithm):
 
-    SP_500_MOMENTUM_TOP_10_STOCKS = "NVDA,META,AMZN,AVGO,JPM,TSLA,WMT,NFLX,PLTR,COST" # https://finance.yahoo.com/quote/SPMO/holdings/
+    INDEXES = {
+        "SP500": {
+            "stocks": ["NVDA", "MSFT", "AAPL", "AMZN", "META", "AVGO", "GOOGL", "BRK.B", "TSLA", "GOOG"],
+            "benchmark_symbol": "SPY"
+            # https://finance.yahoo.com/quote/SPY/holdings/
+        },
+        "NASDAQ100": {
+            "stocks": ["NVDA", "MSFT", "AAPL", "AMZN", "AVGO", "META", "NFLX", "TSLA", "COST", "GOOGL"],
+            "benchmark_symbol": "QQQ"
+            # https://finance.yahoo.com/quote/QQQ/holdings/
+        },
+        "SP500 MOMENTUM": {
+            "stocks": ["NVDA", "META", "AMZN", "AVGO", "JPM", "TSLA", "WMT", "NFLX", "PLTR", "COST"],
+            "benchmark_symbol": "SPMO"
+            # https://finance.yahoo.com/quote/SPMO/holdings/
+        },
+        "SP MEDIUM CAP MOMENTUM": {
+            "stocks": ["IBKR", "EME", "SFM", "FIX", "GWRE", "USFD", "CRS", "EQH", "CW", "CASY"],
+            "benchmark_symbol": "XMMO"
+            # https://finance.yahoo.com/quote/XMMO/holdings/
+        },
+        "SP SMALL CAP MOMENTUM": {
+            "stocks": ["EAT", "CORT", "COOP", "AWI", "IDCC", "SKYW", "JXN", "CALM", "DY", "SMTC"],
+            "benchmark_symbol": "XSMO"
+            # https://finance.yahoo.com/quote/XSMO/holdings/
+        },
+        "IPOX 100 US": {
+            "stocks": ["GEV", "PLTR", "APP", "CEG", "RBLX", "DASH", "IBM", "HOOD", "TT", "IOT"],
+            "benchmark_symbol": "FPX"
+            # https://finance.yahoo.com/quote/FPX/
+        }
+    }
+
+    BREAK_OUTS = {
+        "LONG_TERM": {"atr_period": 10, "factor": 30},
+        "MEDIUM_TERM": {"atr_period": 10, "factor": 10},
+        "SHORT_TERM": {"atr_period": 10, "factor": 3}
+    }
 
     def initialize(self):
 
-        self.atr_period = self.get_parameter("atr_period", 10)
-        self.factor = self.get_parameter("factor", 3)
-        self.risk_percentage = self.get_parameter("risk_percentage", 10)
-        self.atr_multiplier = self.get_parameter("atr_multiplier", 2)
-        self.atr_length = self.get_parameter("atr_length", 20)
+        # ********************************
+        # User defined inputs
+        # ********************************
+        self.index = self.get_parameter("index", "SP500 MOMENTUM")
+        self.breakout = self.get_parameter("breakout", "LONG_TERM")
+        self.leverage = self.get_parameter("leverage", 0)
 
-        self.symbols = self.get_parameter("symbols", self.SP_500_MOMENTUM_TOP_10_STOCKS).split(",")  
-        self.market_type = self.get_parameter("market_type", "equity")  # equity, crypto
 
         # Filter settings
-        self.enable_filter = True if (self.get_parameter("enable_filter", "False") == "True") else False
-
-        if self.market_type == "equity":
-            self.benchmark_symbol = self.get_parameter("benchmark_symbol", "SPY")
-        elif self.market_type == "crypto":
-            self.benchmark_symbol = self.get_parameter("benchmark_symbol", "BTCUSD")
-            self.set_benchmark(lambda x: self.securities[self.benchmark_symbol].Price)
+        self.enable_filter = True if (self.get_parameter("enable_filter", "True") == "True") else False
 
         # ********************************
         # Algorithm settings
         # ********************************
-
-        # Basic
-        self.set_start_date(datetime.date.today().year - 10, 1, 1)
+        self.set_start_date(datetime.date.today().year - 5, 1, 1)
         self.set_cash(10000)
         self.enable_automatic_indicator_warm_up = True
 
-        if self.market_type == "equity":
-            self.markets = {symbol: self.add_equity(symbol, Resolution.DAILY, leverage=5) for symbol in self.symbols}
-            self.add_equity(self.benchmark_symbol, Resolution.DAILY)
-        elif self.market_type == "crypto":
-            self.markets = {symbol: self.add_crypto(symbol, Resolution.DAILY, leverage=10) for symbol in self.symbols}
-            self.add_crypto(self.benchmark_symbol, Resolution.DAILY)
+        self.benchmark_symbol = self.INDEXES[self.index]["benchmark_symbol"]
+        self.symbols = self.INDEXES[self.index]["stocks"]
+        self.markets = {symbol: self.add_equity(symbol, Resolution.DAILY) for symbol in self.symbols}
+        self.add_equity(self.benchmark_symbol, Resolution.DAILY)
+        self.enable_trading = True
 
         # Init indicators
-        self.strs = {symbol: self.str(symbol, self.atr_period, self.factor) for symbol in
+        self.strs = {symbol: self.str(symbol, self.BREAK_OUTS[self.breakout]["atr_period"], self.BREAK_OUTS[self.breakout]["factor"]) for symbol in
                             self.symbols}
-        self.atrs = {symbol: self.atr(symbol, self.atr_length) for symbol in self.symbols}
         self.benchmark_sma200 = self.sma(self.benchmark_symbol, 200)
 
     def on_data(self, data: Slice):
         for symbol in self.symbols:
             _str = self.strs[symbol]
-            atr = self.atrs[symbol]
-            self.strategy(data, symbol, _str, atr)
+            self.strategy(data, symbol, _str)
 
-    def strategy(self, data, symbol, _str, atr):
+    def strategy(self, data, symbol, _str):
         # **********************************
         # Perform calculations and analysis
         # **********************************
 
         # Basic
-        if symbol not in data.Bars:
+        # Basic
+        if symbol not in data.Bars or self.benchmark_symbol not in data.Bars:
             return
 
         bar = data.Bars[symbol]
         bar_benchmark = data.Bars[self.benchmark_symbol]
-
-        # Trade amount
-        quantity = int(((self.risk_percentage / 100) * self.portfolio.cash_book["USD"].amount) / (
-                self.atr_multiplier * atr.current.value))
 
         # Filter
         filter = bar_benchmark.close > self.benchmark_sma200[1].value if self.enable_filter else True
 
         is_uptrend = bar.close > _str[1].value
         buy_condition = is_uptrend and filter and not self.portfolio[symbol].is_long
-        sell_condition = not is_uptrend and self.portfolio[symbol].is_long
+        sell_condition = not is_uptrend and self.portfolio[symbol].is_long if filter else True
 
         # ********************************
         # Manage trade
         # ********************************
         if buy_condition:
-            self.market_order(symbol, quantity)
+            self.set_holdings(symbol, (1 / len(self.symbols)) + (1 / len(self.symbols) * self.leverage))
 
         if sell_condition:
             self.liquidate(symbol)
