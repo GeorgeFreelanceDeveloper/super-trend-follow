@@ -10,8 +10,8 @@ SupertrendV2 is an algorithmic trading strategy based on the Supertrend indicato
 ![](resources/strategyEquity.png)
 
 
-> *Backtest Period: Jan 2015 – Feb 2025*  
-> *(Using S&P500 MOMENTUM index medium-term breakout with filter*
+> *Backtest Period: Jan 2015 – May 2025*  
+> *(Using S&P500 MOMENTUM index medium-term breakout*
 
 ### CAGR 
 The compound annual growth rate is the rate of return that an investment would need to have every year 
@@ -19,7 +19,7 @@ in order to grow from its beginning balance to its ending balance, over a given 
 
 | Stocks    | Benchmark ETF | Momentum ETF | Stock-index-top-10   |
 |-----------|---------------|--------------|----------------------|
-| LargeCap  | 16.52%        | 22.23%       | TODO				  |
+| LargeCap  | 16.52%        | 22.23%       | 33.5%  			  |
 
 ### Max drawdown
 Maximum drawdown is the worst dip an investment takes from a high to a low. 
@@ -28,9 +28,9 @@ and highlights the potential volatility of a stock.
 
 | Stocks    | Benchmark ETF | Momentum ETF | Stock-index-top-10   |
 |-----------|---------------|--------------|----------------------|
-| LargeCap  | 35%           | 32%          | TODO				  |
+| LargeCap  | 35%           | 32%          | 30.7%				  |
 
-> * Backtest Period: Jan 2020 – Feb 2025
+> * Backtest Period: Jan 2020 – May 2025
 > * Super-trend medium term breakout with filter
 
 
