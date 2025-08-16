@@ -1,99 +1,76 @@
-# SuperTrendFollow
+# 📈 SupertrendV2 Trading Strategy
 
-## About strategy
-The Supertrend Strategy is a trend trading strategy that uses the Supertrend indicator to identify and trade trends in the financial markets. This strategy focuses on entering the market in line with the main trend and exiting the market when the trend begins to reverse.
-
-The basis of the Supertrend strategy is the Supertrend indicator, which determines the direction of the trend and potential entry and exit points. The Supertrend indicator generates signals based on current price data and a certain volatility factor.
-
-In general, when the price crosses the Supertrend up value, it is a signal to buy (long entry), while if the price falls below the Supertrend value, it is a signal to sell (short entry). Traders usually combine Supertrend with other indicators or filters to confirm trading signals and reduce the risk of false signals.
-
-The Supertrend strategy can be used on different time horizons and in different markets, including stocks, forex, commodities and cryptocurrencies.
+SupertrendV2 is an algorithmic trading strategy based on the Supertrend indicator that uses the momentum of selected stock indices to generate buy and sell signals. The strategy is designed for the QuantConnect platform and allows for flexible configuration based on index type, breakout period length, and benchmark filter usage.
 
 **Prerequisites**
 * Liquidity
 * Volatility
-* Trending market
+* Trending market with strong momemntum
 
 ![](resources/strategyEquity.png)
 
+
 > *Backtest Period: Jan 2015 – Feb 2025*  
-> *(Using Top 10 stocks from S&P500 MOMENTUM index)*
+> *(Using S&P500 MOMENTUM index medium-term breakout with filter*
 
-| Metric                  | Value         |
-|-------------------------|---------------|
-| CAGR (Annual Return)    | 20.3%        |
-| Max Drawdown            | -28%        |
-| Sharpe Ratio            | 0.8          |
-| Win Rate (Monthly)      | 43%           |
-| Total Trades            | 431           |
+### CAGR 
+The compound annual growth rate is the rate of return that an investment would need to have every year 
+in order to grow from its beginning balance to its ending balance, over a given time interval.
 
-**Backtests last 10 years**
-* [Super trend on top 10 stocks from S&P 500 MOMENTUM index](https://s3.amazonaws.com/reports.quantconnect.com/344866/21529583/f84c680cf2428b3b2c5e2db11dd74ef0.pdf)
+| Stocks    | Benchmark ETF | Momentum ETF | Stock-index-top-10   |
+|-----------|---------------|--------------|----------------------|
+| LargeCap  | 16.52%        | 22.23%       | TODO				  |
 
-## Author
-Olivier Seban is a prominent figure in the world of trading and investing, particularly known for his expertise in technical analysis and trend following strategies. Born in France, Seban has built a reputation as an educator and author, sharing his insights and knowledge with aspiring traders worldwide.
+### Max drawdown
+Maximum drawdown is the worst dip an investment takes from a high to a low. 
+Maximum drawdown is an indicator of downside risk over a specified time period 
+and highlights the potential volatility of a stock.
 
-Seban is the author of several bestselling books on trading, including "Tout le monde mérite d'être riche" (Everyone Deserves to Be Rich) and "Le pouvoir de l'autodiscipline" (The Power of Self-Discipline). In his works, he emphasizes the importance of discipline, patience, and risk management in achieving long-term success in the financial markets.
+| Stocks    | Benchmark ETF | Momentum ETF | Stock-index-top-10   |
+|-----------|---------------|--------------|----------------------|
+| LargeCap  | 35%           | 32%          | TODO				  |
 
-As a trader, Seban advocates for a systematic approach to trading, focusing on identifying and riding major market trends while minimizing risk. He is known for his simple yet effective trading techniques that can be applied by traders of all levels of experience.
+> * Backtest Period: Jan 2020 – Feb 2025
+> * Super-trend medium term breakout with filter
 
-The SuperTrend indicator was created by Olivier Seban. The SuperTrend indicator is designed to identify trends in financial markets and provide traders with signals for potential entry and exit points based on the direction of those trends. It has become widely used by traders around the world due to its simplicity and effectiveness in capturing trends while minimizing false signals.
 
-## Entry and exit conditions for long side
-**Entry**
-* Daily close price is above value of  Super trend indicator from previous day
+## 🚀 Key Features
 
-**Exit**
-* Daily close price is below value of Super trend indicator from previous day
+- **Multiple Index Support**: SP500, NASDAQ100, IPOX 100 US, and other momentum-based indices.
+- **Supertrend breakout logic**: Three breakout levels – short-term, medium-term, and long-term – defined using ATR period and factor.
+- **Dynamic stock selection**: The strategy automatically loads stocks based on the selected index.
+- **Benchmark Filter**: Optional filter that only activates trades when the benchmark is above its 200-day SMA.
+- **Leverage**: Option to set leverage for more aggressive capital allocation.
 
-Super trend indicator parameters: (Time frame: Daily, ATR lenght: 10, Factor: 3)
-## Filters
-**Simple**
-* Daily close price is above 200 day moving average (bullish environment)
+## ⚙️ Parameters
 
-**Advance**
+| Parameter | Description |
+|-----|-------------------------------------------------------------------------|
+| `index` | Index selection (e.g. `"SP500 MOMENTUM"`, `"NASDAQ100"`) |
+| `breakout` | Breakout strategy type (`"LONG_TERM"`, `"MEDIUM_TERM"`, `"SHORT_TERM"`)|
+| `leverage` | Leverage (e.g. `0`, `1`, `2`) |
+| `enable_filter` | Benchmark filter activation (`"True"` or `"False"`) |
+## 📊 Strategy Logic
 
-I think using Super trend indicator is more accurate determination of medium-term trend changes from bear market to bull market and vice versa.
+1. **Initialization**:
+- Loading historical data and indicators.
+- Calculation of the Supertrend value for each stock.
+- Calculation of the 200-day SMA benchmark.
 
-* Daily close price is above Super trend indicator(Time frame: Weekly, ATR lenght: 10, Factor: 3)
+2. **Trading Decision**:
+- **Buy**: If the price is above the Supertrend, the benchmark is above SMA200 (if the filter is active) and the position is not open.
+- **Sell**: If the price falls below the Supertrend or the benchmark is not above SMA200.
 
-## Position sizing
-The size of the position is determined on the basis of volatility, the more volatile the market, the smaller the positions, and conversely, the less volatile the market, the larger positions are traded so that the risk per trade is always the same in various volatile markets.
+3. **Capital Allocation**:
+- Even distribution between selected stocks with the possibility of increasing using leverage.
 
-**Simple by ATR**
-```c#
-private double ComputeTradeAmount(){
-    int AtrMultiplier = 2;
-    double amount = (RiskPerTradeInPercentage * AccountSize) / AtrMultiplier * ATR(20, Days)
-    return amount;
-}
+## 📁 Data Source
 
-```
+- Stocks are selected according to the ETF composition available on Yahoo Finance (e.g. [SPMO](https://finance.yahoo.com/quote/SPMO/holdings/)).
 
-**Advance accurately determine the percentage risk**
-```c#
-//entryPrice: your entry to market
-//stopPrice: SuperTrendIdicator value
-private double ComputeTradeAmount(double entryPrice, double stopPrice)
-{
-	double riskPerTrade = (RiskPercentage / 100) * Account.Balance;
-        double move = entryPrice - stopPrice;
-        double amountRaw = riskPerTrade / ((Math.Abs(move) / Symbol.PipSize) * Symbol.PipValue);
-        double amount = ((int)(amountRaw / Symbol.VolumeInUnitsStep)) * Symbol.VolumeInUnitsStep;
-        return amount;
-}
-```
+## 🧠 Supertrend Indicator
 
-## Management position
-- Only one position open for one market.
-
-## Suitable markets for trading
-* Cryptocurrencies (Bitcoin, Ethereum)
-* Stock indexies (S&P 500, Nasdaq, DJI, NIFTY50)
-* Stocks in long-term uptrend (AAPL, MSFT, NVDA, TSLA, AMZN, NFLX, SHOP, MA, ASML, PANW)
-* Forex pairs in long-term uptrend (USDTRY, EURTRY, GBPTRY, USDINR, USDCNH) - <span style="color:red">warning: in reality impossible to trade due to high swap</span>
-
-## Notes
+Supertrend is a trend indicator based on ATR (Average True Range) that helps identify the market direction. In this strategy it is used for breakout logic with different sensitivity factors.
 
 ## Resources
 * [Supertrend Indicator: What It Is, How It Works - investopedia.com](https://www.investopedia.com/supertrend-indicator-7976167)
